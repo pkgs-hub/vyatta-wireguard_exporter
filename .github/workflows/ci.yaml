@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+env:
+  VERSION: 3.6.6
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-x86_64-unknown-linux-musl-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-x86_64-unknown-linux-musl-
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+
+      # check if ~/.cargo/bin/prometheus_wireguard_exporter exists, and version number matches ${{ env.VERSION }}
+
+      - name: "Download prometheus_wireguard_exporter"
+        run: cargo install --force --target x86_64-unknown-linux-musl --version ${{ env.VERSION }} prometheus_wireguard_exporter
+
+      - name: "Find version"
+        if: startsWith(github.ref, 'refs/tags/')
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: image
+          tags: type=semver,pattern={{version}}
+
+      - name: "Rename artifacts"
+        run: |
+          mv ~/.cargo/bin/prometheus_wireguard_exporter deb/opt/vyatta-wireguard_exporter/
+
+      - name: Adjust version number for release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sed -i "s|Version:.*|Version: ${GITHUB_REF#refs/*v}|" ./deb/DEBIAN/control
+
+      - name: Build deb
+        run: |
+          chmod +x deb/DEBIAN/postinst
+          dpkg-deb --build --root-owner-group deb
+
+      - name: Rename deb
+        run: mv deb.deb vyatta-wireguard-exporter_$(dpkg-deb -f deb.deb Version)_$(dpkg-deb -f deb.deb Architecture).deb
+
+      - run: ls -la
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-vyatta-wireguard_exporter
+          path: |
+            vyatta-wireguard-exporter_*.deb
+
+      - uses: crazy-max/ghaction-github-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            vyatta-wireguard-exporter_*.deb

@@ -1,0 +1,2 @@
+help: Show wireguard_exporter status
+run: systemctl status wireguard_exporter

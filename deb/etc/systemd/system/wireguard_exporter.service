@@ -1,0 +1,9 @@
+[Unit]
+Description=Wireguard Exporter
+
+[Service]
+EnvironmentFile=/etc/default/wireguard_exporter
+ExecStart=/opt/vyatta-wireguard_exporter/wireguard_exporter $OPTIONS
+
+[Install]
+WantedBy=multi-user.target

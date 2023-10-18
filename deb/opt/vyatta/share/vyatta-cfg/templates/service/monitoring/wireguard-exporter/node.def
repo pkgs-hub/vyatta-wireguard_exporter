@@ -1,0 +1,2 @@
+help: wireguard_exporter configuration
+end: sudo sh -c "${vyshim} /opt/vyatta-wireguard_exporter/config.py"

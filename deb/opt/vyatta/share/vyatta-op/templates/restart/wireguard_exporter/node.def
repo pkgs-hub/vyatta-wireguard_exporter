@@ -1,0 +1,2 @@
+help: Restart wireguard_exporter
+run: sudo systemctl restart wireguard_exporter

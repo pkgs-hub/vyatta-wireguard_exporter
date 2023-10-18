@@ -1,0 +1,5 @@
+Package: vyatta-wireguard-exporter
+Version: 3.6.6
+Architecture: amd64
+Maintainer: pkgs-hub <https://github.com/pkgs-hub>
+Description: wireguard_exporter for vyatta

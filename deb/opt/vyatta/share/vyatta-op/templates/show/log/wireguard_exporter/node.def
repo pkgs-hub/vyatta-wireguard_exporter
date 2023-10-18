@@ -1,0 +1,2 @@
+help: Show wireguard_exporter logs
+run: journalctl -u wireguard_exporter | less

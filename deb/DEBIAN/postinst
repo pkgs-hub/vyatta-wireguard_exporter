@@ -1,0 +1,2 @@
+chmod +x /opt/vyatta-wireguard_exporter/config.py
+systemctl daemon-reload
